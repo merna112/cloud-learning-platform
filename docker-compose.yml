@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # --- Infrastructure Layer ---
+  db:
+    image: postgres:15
+    container_name: platform-db
+    environment:
+      POSTGRES_USER: dbadmin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbadmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: platform-cache
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: bitnami/kafka:latest
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+
+  # --- Application Layer (The 5 Services) ---
+
+  # 1. Text-to-Speech (TTS) Service
+  tts-service:
+    build: ./services/tts-service
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    environment:
+      - S3_BUCKET=tts-service-storage-dev
+      - REDIS_HOST=redis
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      - kafka
+      - redis
+
+  # 2. Speech-to-Text (STT) Service
+  stt-service:
+    build: ./services/stt-service
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - S3_BUCKET=stt-service-storage-dev
+      - DATABASE_URL=postgres://dbadmin:${DB_PASSWORD}@db:5432/stt_db
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+
+  # 3. Chat Completion Service
+  chat-service:
+    build: ./services/chat-service
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - S3_BUCKET=chat-service-storage-dev
+      - DATABASE_URL=postgres://dbadmin:${DB_PASSWORD}@db:5432/chat_db
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+
+  # 4. Document Reader Service
+  document-reader-service:
+    build: ./services/document-reader-service
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - S3_BUCKET=document-reader-storage-dev
+      - DATABASE_URL=postgres://dbadmin:${DB_PASSWORD}@db:5432/document_db
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+
+  # 5. Quiz and Exercise Service
+  quiz-service:
+    build: ./services/quiz-service
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - S3_BUCKET=quiz-service-storage-dev
+      - DATABASE_URL=postgres://dbadmin:${DB_PASSWORD}@db:5432/quiz_db
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+
+volumes:
+  postgres_data:
