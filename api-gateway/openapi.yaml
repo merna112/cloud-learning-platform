@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: API Gateway
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api/v1
+paths:
+  /tts:
+    post:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: TTS Response
+
+  /stt:
+    post:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: STT Response
+
+  /chat:
+    post:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Chat Response
+
+  /documents:
+    post:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Document Uploaded
+
+  /quiz:
+    post:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Quiz Generated
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

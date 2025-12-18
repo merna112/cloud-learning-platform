@@ -1,0 +1,81 @@
+_format_version: "3.0"
+
+services:
+  - name: tts-service
+    url: http://tts-service:8080
+    routes:
+      - name: tts-route
+        paths:
+          - /api/v1/tts
+
+  - name: stt-service
+    url: http://stt-service:8080
+    routes:
+      - name: stt-route
+        paths:
+          - /api/v1/stt
+
+  - name: chat-service
+    url: http://chat-service:8080
+    routes:
+      - name: chat-route
+        paths:
+          - /api/v1/chat
+
+  - name: document-reader-service
+    url: http://document-service:8080
+    routes:
+      - name: document-route
+        paths:
+          - /api/v1/documents
+
+  - name: quiz-service
+    url: http://quiz-service:8080
+    routes:
+      - name: quiz-route
+        paths:
+          - /api/v1/quiz
+
+plugins:
+  - name: jwt
+
+  - name: rate-limiting
+    config:
+      minute: 60
+      policy: local
+
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+      exposed_headers:
+        - Authorization
+      credentials: true
+      max_age: 3600
+
+  - name: request-transformer
+    config:
+      add:
+        headers:
+          - X-API-Gateway:Kong
+
+  - name: file-log
+    config:
+      path: /dev/stdout
+
+consumers:
+  - username: api-client
+
+jwt_secrets:
+  - consumer: api-client
+    key: api-client-key
+    secret: api-client-secret
