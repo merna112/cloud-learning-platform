@@ -1,0 +1,10 @@
+kafka-topics --create --topic document.uploaded --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic document.processed --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic notes.generated --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic quiz.requested --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic quiz.generated --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic audio.transcription.requested --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic audio.transcription.completed --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic audio.generation.requested --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic audio.generation.completed --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
+kafka-topics --create --topic chat.message --partitions 3 --replication-factor 2 --bootstrap-server kafka1:9092
